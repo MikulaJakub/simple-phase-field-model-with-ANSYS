@@ -1,0 +1,182 @@
+!martensite problem with 1 variant 
+!
+!purpose:
+!	> finite difference method (FDM) mapped on finite element method (FEM)
+!	> FDM solves the pahse field 
+!	> FEM solves the equations of equilibrium 
+!created by: Jakub Mikula
+!Last Change: 27.05.2016
+
+FINISH
+/clear
+
+!Geometry   
+!---------------------------------------------------------------------------------------
+/prep7  
+	k   
+	k,,100*1e-0       			!mm	!domain size    
+	k,,100*1e-0,100*1e-0     	!mm	!domain size 
+	k,,,100*1e-0     			!mm	!domain size 
+	l,1,2   
+	l,2,3   
+	l,3,4   
+	l,4,1   
+	al,all  
+	
+!Finite element 
+!---------------------------------------------------------------------------------------
+	ET,1,42 
+	KEYOPT,1,1,0
+	KEYOPT,1,2,1
+	KEYOPT,1,3,2
+	KEYOPT,1,5,0
+	KEYOPT,1,6,0
+	
+!Material properties
+!---------------------------------------------------------------------------------------
+	MP,EX,1,21e+0    				!Young's modulus  !MPa   
+	MP,PRXY,1,0.0    			!Poisson's ratio (must be zero = transformation strain)
+	*SET,e_xx0 , 0.1363e-1 
+	*SET,e_yy0 , -0.1882e-1
+	*SET,e_xy0 , 0  
+	MP,ALPX,1,e_xx0    			!conductivity coefficient , temperature is set to one
+	MP,ALPY,1,e_yy0   			!= transformation strains 
+	
+!Mesh   
+!---------------------------------------------------------------------------------------
+	lesize,all,,,100 			!number of elements on one line
+	AMESH,all   
+	
+!Boundary conditions
+!---------------------------------------------------------------------------------------
+	DL,1,,UY,0  				!clamped boundary condition 
+	DL,2,,UX,0  				!clamped boundary condition 
+	DL,3,,UY,0  				!clamped boundary condition 
+	DL,4,,UX,0  				!clamped boundary condition 
+	
+!Apply temperature (order parameter)
+!---------------------------------------------------------------------------------------
+	*GET,NELE,elem,,count   
+	*GET,NDOF,node,,count   
+	*SET,konst , 0  
+	*SET,CR_x , 50*1e-0 		!x-position of the ellipse  
+	*SET,CR_y , 50*1e-0 		!y-position of the ellipse  
+	*DIM,phi,ARRAY,101,101,1, , ,   
+	*DIM,phi_old,ARRAY,101,101,1, , ,   
+	*DO,i,1,101,1   
+	*DO,j,1,101,1   
+		*SET,phi(i,j) , 0   
+		*SET,phi_old(i,j) , 0   
+	*ENDDO  
+	*ENDDO  
+	
+	!create table with position of the nodes (something like finite difference mesh)
+	*DIM,coordinates,ARRAY,101,101,1, , ,   
+	*DO,i,1,NDOF,1  
+		*GET,ndofX,NODE,i,LOC,X 
+		*GET,ndofY,NODE,i,LOC,Y 
+		*SET,coordinates(ndofX*1e+0+1,ndofY*1e+0+1) , i 
+	*ENDDO  
+	*DO,i,1,NDOF,1  
+		*GET,ndofX,NODE,i,LOC,X 
+		*GET,ndofY,NODE,i,LOC,Y 
+		
+		!set the initial condition
+		!*IF,((ndofX-50)**2 + (ndofY-25)**2  + 1.8*(ndofX-50)*(ndofY-25)),LT,2**2,THEN   
+		!*IF,(((ndofX-CR_x)/(10.0*1e-0))**2 + ((ndofY-CR_y)/(10.0*1e-0))**2),LT,(1.0)**2,THEN  !equation of ellipse 
+		*IF,((ndofX-50*1e-0)**2 + (ndofY-50*1e-0)**2),LT,(2*1e-0)**2,THEN  
+			BF,i,TEMP,1 
+			*SET,phi(ndofX*1e+0+1,ndofY*1e+0+1) , 1 
+		*ENDIF  
+	*ENDDO  
+	
+!---------------------------------------------------------------------------------------
+FINISH  
+!---------------------------------------------------------------------------------------
+/SOL
+	SOLVE  
+
+!---------------------------------------------------------------------------------------
+!FINITE DIFFERENCE METHOD SOLUTION 
+!---------------------------------------------------------------------------------------	
+	*SET,gamma , 1  
+	*SET,dt,1 
+	*SET,dx,1   
+	*SET,dy,1   
+	*SET,K_beta,1.06e-3 
+	*SET,const_2 , 0.0167483
+	*SET,const_3 , -0.315885
+	*SET,const_4 , 0.2991368
+	
+	*DO,ijk,1,500,1 	!start of the main ijk loop 
+	/title, iteration %ijk%
+	
+		*DO,k,2,100,1   
+		*DO,l,2,100,1   
+			*SET,phi_old(k,l) , phi(k,l)-gamma*dt*(const_2*phi(k,l)+const_3*phi(k,l)**2+const_4*phi(k,l)**3)
+			*SET,phi_old(k,l) , phi_old(k,l)-gamma*dt*(-K_beta/dx**2*(phi(k+1,l)-2*phi(k,l)+phi(k-1,l)))
+			*SET,phi_old(k,l) , phi_old(k,l)-gamma*dt*(-K_beta/dy**2*(phi(k,l+1)-2*phi(k,l)+phi(k,l-1)))
+			*GET,sigma_xx,NODE,coordinates(k,l),S,X 
+			*GET,sigma_yy,NODE,coordinates(k,l),S,Y 
+			*GET,sigma_xy,NODE,coordinates(k,l),S,XY
+			*SET,phi_old(k,l) , phi_old(k,l)-gamma*dt*(-(e_xx0*sigma_xx+e_yy0*sigma_yy+e_xy0*sigma_xy)) 
+		*ENDDO  
+		*ENDDO  
+		*DO,k,1,101,1   
+		*DO,l,1,101,1   
+			*SET,phi(k,l) , phi_old(k,l)
+		*ENDDO  
+		*ENDDO  
+	
+!---------------------------------------------------------------------------------------
+FINISH  
+!---------------------------------------------------------------------------------------
+	/prep7  
+		*DO,k,1,NDOF,1  
+			*GET,ndofX,NODE,k,LOC,X 
+			*GET,ndofY,NODE,k,LOC,Y 
+			BF,coordinates(ndofX*1e+0+1,ndofY*1e+0+1),TEMP,phi(ndofX*1e+0+1,ndofY*1e+0+1)   
+		*ENDDO  
+		FINISH  
+		/SOL
+		SOLVE   
+		FINISH  
+		/POST1  
+		/DSCALE,ALL,OFF 
+		!PLESOL, BFE,TEMP, 0,1.0	!element solution plot 
+		PLNSOL, BFE,TEMP, 0,1.0		!nodal solution plot
+	
+!Write down the displacements into file 
+!---------------------------------------------------------------------------------------
+!FINISH  
+!---------------------------------------------------------------------------------------
+	
+	/SHOW,PNG,,0
+	PNGR,COMP,1,-1  
+	PNGR,ORIENT,HORIZ   
+	PNGR,COLOR,2
+	PNGR,TMOD,1 
+	/GFILE,800, 
+	!*  
+	/CMAP,_TEMPCMAP_,CMP,,SAVE  
+	/RGB,INDEX,100,100,100,0
+	/RGB,INDEX,0,0,0,15 
+	/REPLOT 
+	/CMAP,_TEMPCMAP_,CMP
+	/DELETE,_TEMPCMAP_,CMP  
+	/SHOW,CLOSE 
+	/DEVICE,VECTOR,0
+
+FINISH	
+		! *DO,i,1,NDOF,1
+		! *GET,u_n,NODE,i,U,X   
+		! *GET,x_n,NODE,i,LOC,X 
+		! *GET,y_n,NODE,i,LOC,Y 
+		! /OUT, ahoj,'dat',,append  
+		! /COM, %u_n% %x_n% %y_n%   
+		! /OUT,TERM 
+		! *ENDDO
+!---------------------------------------------------------------------------------------
+FINISH  
+
+	*ENDDO  	!end of the main ijk loop 
