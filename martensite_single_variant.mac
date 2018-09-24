@@ -1,29 +1,37 @@
-!martensite problem with 1 variant 
+! (c) 2018, Jakub Mikula
+! IHPC A*STAR, NUS
+! Contact: mikula_jakub@centrum.sk
 !
-!purpose:
+! Martensite problem with 1 variant 
+!
+! Purpose:
+!	> model the evolution of martensitic lamella growing in the austenitic matrix 
+!       > (cubic to tetragonal phase transformation)
+! Description:
 !	> finite difference method (FDM) mapped on finite element method (FEM)
-!	> FDM solves the pahse field 
-!	> FEM solves the equations of equilibrium 
-!created by: Jakub Mikula
-!Last Change: 27.05.2016
+!	> FDM solves the phase field 
+!	> FEM solves the equations of mechanical equilibrium Ku=F
+!
+! Created by: Jakub Mikula
+! Last updated: 27.05.2016
 
 FINISH
 /clear
 
-!Geometry   
+! Geometry   
 !---------------------------------------------------------------------------------------
 /prep7  
 	k   
-	k,,100*1e-0       			!mm	!domain size    
+	k,,100*1e-0       		!mm	!domain size    
 	k,,100*1e-0,100*1e-0     	!mm	!domain size 
-	k,,,100*1e-0     			!mm	!domain size 
+	k,,,100*1e-0     		!mm	!domain size 
 	l,1,2   
 	l,2,3   
 	l,3,4   
 	l,4,1   
 	al,all  
 	
-!Finite element 
+! Finite element 
 !---------------------------------------------------------------------------------------
 	ET,1,42 
 	KEYOPT,1,1,0
@@ -32,29 +40,40 @@ FINISH
 	KEYOPT,1,5,0
 	KEYOPT,1,6,0
 	
-!Material properties
+! Material properties
+! Transformation strains are implemented via the secant coefficient
 !---------------------------------------------------------------------------------------
-	MP,EX,1,21e+0    				!Young's modulus  !MPa   
-	MP,PRXY,1,0.0    			!Poisson's ratio (must be zero = transformation strain)
+	MP,EX,1,21e+0    			!Young's modulus  [rescaled]   
+	MP,PRXY,1,0.0    			!Poisson's ratio
 	*SET,e_xx0 , 0.1363e-1 
 	*SET,e_yy0 , -0.1882e-1
 	*SET,e_xy0 , 0  
 	MP,ALPX,1,e_xx0    			!conductivity coefficient , temperature is set to one
 	MP,ALPY,1,e_yy0   			!= transformation strains 
 	
-!Mesh   
+	*SET,gamma,1  
+	*SET,dt,1 				!time step
+	*SET,dx,1   				!grid spacing in x
+	*SET,dy,1   				!grid spacing in y
+	*SET,K_beta,1.06e-3 			!gradient coefficient
+	*SET,const_2 , 0.0167483		!double well potential constant
+	*SET,const_3 , -0.315885		!double well potential constant
+	*SET,const_4 , 0.2991368		!double well potential constant
+	
+! Mesh   
 !---------------------------------------------------------------------------------------
 	lesize,all,,,100 			!number of elements on one line
 	AMESH,all   
 	
-!Boundary conditions
+! Boundary conditions
 !---------------------------------------------------------------------------------------
 	DL,1,,UY,0  				!clamped boundary condition 
 	DL,2,,UX,0  				!clamped boundary condition 
 	DL,3,,UY,0  				!clamped boundary condition 
 	DL,4,,UX,0  				!clamped boundary condition 
 	
-!Apply temperature (order parameter)
+! Initial condition	
+! Apply temperature (order parameter)
 !---------------------------------------------------------------------------------------
 	*GET,NELE,elem,,count   
 	*GET,NDOF,node,,count   
@@ -90,23 +109,15 @@ FINISH
 		*ENDIF  
 	*ENDDO  
 	
-!---------------------------------------------------------------------------------------
-FINISH  
+
+! Solve the equations of mechanical equilibrium Ku=F
 !---------------------------------------------------------------------------------------
 /SOL
 	SOLVE  
 
-!---------------------------------------------------------------------------------------
-!FINITE DIFFERENCE METHOD SOLUTION 
+! START MAIN LOOP
+! Solve the phase field equations (using the finite difference method)
 !---------------------------------------------------------------------------------------	
-	*SET,gamma , 1  
-	*SET,dt,1 
-	*SET,dx,1   
-	*SET,dy,1   
-	*SET,K_beta,1.06e-3 
-	*SET,const_2 , 0.0167483
-	*SET,const_3 , -0.315885
-	*SET,const_4 , 0.2991368
 	
 	*DO,ijk,1,500,1 	!start of the main ijk loop 
 	/title, iteration %ijk%
@@ -128,9 +139,7 @@ FINISH
 		*ENDDO  
 		*ENDDO  
 	
-!---------------------------------------------------------------------------------------
 FINISH  
-!---------------------------------------------------------------------------------------
 	/prep7  
 		*DO,k,1,NDOF,1  
 			*GET,ndofX,NODE,k,LOC,X 
@@ -144,11 +153,9 @@ FINISH
 		/POST1  
 		/DSCALE,ALL,OFF 
 		!PLESOL, BFE,TEMP, 0,1.0	!element solution plot 
-		PLNSOL, BFE,TEMP, 0,1.0		!nodal solution plot
-	
-!Write down the displacements into file 
-!---------------------------------------------------------------------------------------
-!FINISH  
+		PLNSOL, BFE,TEMP, 0,1.0		!nodal solution plot 
+
+! Print the results
 !---------------------------------------------------------------------------------------
 	
 	/SHOW,PNG,,0
@@ -179,4 +186,6 @@ FINISH
 !---------------------------------------------------------------------------------------
 FINISH  
 
-	*ENDDO  	!end of the main ijk loop 
+	*ENDDO  	!end of the main ijk loop \
+! FINISH THE MAIN LOOP
+! END PROGRAM
