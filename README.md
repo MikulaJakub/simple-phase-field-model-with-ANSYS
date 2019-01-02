@@ -36,9 +36,4 @@ With clamped boundary conditions the system equilibrates with the following patt
 
 ![](martensite_phase_transformation.gif)
 
-Not all austenite can transform. However, for stress free boundary conditions, eventually all austenite would transform as there would be no constraints on the boundaries of the system.
-
-### Loading with a constant strain rate (stress-strain curve)
-
-
-
+In the case of clamped boundaries, only a part of austenite transforms. However, for stress free boundary conditions, eventually all austenite would transform as there would be no constraints on the boundaries of the system.
