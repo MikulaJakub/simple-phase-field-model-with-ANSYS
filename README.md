@@ -27,7 +27,7 @@ These equations are solved together with the equations of mechanical equilibrium
 
 ## Implementation into ANSYS using APDL macro
 
-In this implementation I model the transformation strain through the secant coefficients (represents the transformation strain) and temperature (represents the order parameter). 
+In this implementation I model the transformation strain through the analogy of thermal expansion which I define by the secant coefficients (representing the transformation strain) and temperature (representing the order parameter). 
 
 
 ## Solution
