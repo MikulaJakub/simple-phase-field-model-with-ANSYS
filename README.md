@@ -26,8 +26,9 @@ These equations are solved together with the equations of mechanical equilibrium
 
 
 ## Implementation into ANSYS using APDL macro
-
+*... to be finished*
 ## Solution
+*... to be finished*
 ### Clamped Boundaries
 
 ### Loading with a constant strain rate (stress-strain curve)
