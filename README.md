@@ -18,7 +18,7 @@ where, <img src="https://latex.codecogs.com/svg.latex?\inline&space;A,B,C" title
 
 I have chosen the following double well potential:
 
-![Double well potential](double_well_potential.eps)
+<img src="https://github.com/MikulaJakub/simple-phase-field-model-with-ANSYS/blob/master/double_well_potential.png" width="50%">
 
 These equations are solved together with the equations of mechanical equilibrium at each time step:
 
