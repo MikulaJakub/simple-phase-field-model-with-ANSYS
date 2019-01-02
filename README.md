@@ -14,9 +14,10 @@ withing the Ginzburg-Landau theory:
 
 <img src="https://latex.codecogs.com/svg.latex?\frac{\partial&space;\phi}{\partial&space;t}&space;=&space;-\mathcal{M}&space;\frac{\delta&space;\Psi}{\delta&space;\phi}" title="\frac{\partial \phi}{\partial t} = -\mathcal{M} \frac{\delta \Psi}{\delta \phi}" />
 
-where, <img src="https://latex.codecogs.com/svg.latex?\inline&space;A,B,C" title="A,B,C" /> are double well potential constants, <img src="https://latex.codecogs.com/svg.latex?\inline&space;\phi" title="\phi" /> is the order parameter, <img src="https://latex.codecogs.com/svg.latex?\inline&space;\boldsymbol{\varepsilon},&space;\boldsymbol{\varepsilon}^0" title="\boldsymbol{\varepsilon}, \boldsymbol{\varepsilon}^0" /> are strain tensors (total strain and transformation strain), and <img src="https://latex.codecogs.com/svg.latex?\inline&space;\boldsymbol{C}" title="\boldsymbol{C}" /> is the tensor of elastic constants. 
+where, <img src="https://latex.codecogs.com/svg.latex?\inline&space;A,B,C" title="A,B,C" /> are double well potential constants, <img src="https://latex.codecogs.com/svg.latex?\inline&space;\phi" title="\phi" /> is the order parameter, <img src="https://latex.codecogs.com/svg.latex?\inline&space;\kappa" title="\kappa" /> is the gradient coefficient, <img src="https://latex.codecogs.com/svg.latex?\inline&space;\boldsymbol{\varepsilon},&space;\boldsymbol{\varepsilon}^0" title="\boldsymbol{\varepsilon}, \boldsymbol{\varepsilon}^0" /> are strain tensors (total strain and transformation strain), and <img src="https://latex.codecogs.com/svg.latex?\inline&space;\boldsymbol{C}" title="\boldsymbol{C}" /> is the tensor of elastic constants. <img src="https://latex.codecogs.com/svg.latex?\inline&space;\mathcal{M}" title="\mathcal{M}" /> is a mobility constant. 
 
 I have chosen the following double well potential:
+
 
 These equations are solved together with the equations of mechanical equilibrium at each time step:
 
