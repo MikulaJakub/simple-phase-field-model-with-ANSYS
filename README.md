@@ -1,5 +1,5 @@
 # Introduction
-This is a example demonstarting implementation of a phase field model into ANSYS using the macro. This approach is not computationally efficient but it does the job and the implementation is very simple. For simplicity, the phase field model here operates only with one order parameter and the transformation strain is modelled through the thermal coefficients. 
+Here I demonstrate a simple implementation of a phase field model into ANSYS using the macro. This approach is not computationally efficient but it does the job and the implementation is very simple. For simplicity, the phase field model here operates only with one order parameter and the transformation strain is modelled through the thermal coefficients. 
 
 ![](martensite_phase_transformation.gif)
 
