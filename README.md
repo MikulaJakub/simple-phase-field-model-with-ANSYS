@@ -26,10 +26,17 @@ These equations are solved together with the equations of mechanical equilibrium
 
 
 ## Implementation into ANSYS using APDL macro
-*... to be finished*
+
+In this implementation I model the transformation strain through the secant coefficients (represents the transformation strain) and temperature (represents the order parameter). 
+
+
 ## Solution
-*... to be finished*
 ### Clamped Boundaries
+With clamped boundary conditions the system equilibrates with the following pattern formation:
+
+![](martensite_phase_transformation.gif)
+
+Not all austenite can transform. However, for stress free boundary conditions, eventually all austenite would transform as there would be no constraints on the boundaries of the system.
 
 ### Loading with a constant strain rate (stress-strain curve)
 
