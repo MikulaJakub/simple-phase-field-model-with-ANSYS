@@ -32,6 +32,6 @@ In this implementation I model the transformation strain through the analogy of 
 
 ## Solution
 ### Clamped Boundaries
-With clamped boundary conditions the system equilibrates with the following pattern formation:
+Under clamped boundary conditions the system equilibrates with the following pattern formation:
 
 ![](martensite_phase_transformation.gif)
