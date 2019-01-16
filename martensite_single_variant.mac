@@ -157,28 +157,30 @@ FINISH
 ! Print the results
 !---------------------------------------------------------------------------------------
 	
-	/SHOW,PNG,,0
-	PNGR,COMP,1,-1  
-	PNGR,ORIENT,HORIZ   
-	PNGR,COLOR,2
-	PNGR,TMOD,1 
-	/GFILE,800, 
-	!*  
-	/CMAP,_TEMPCMAP_,CMP,,SAVE  
-	/RGB,INDEX,100,100,100,0
-	/RGB,INDEX,0,0,0,15 
-	/REPLOT 
-	/CMAP,_TEMPCMAP_,CMP
-	/DELETE,_TEMPCMAP_,CMP  
-	/SHOW,CLOSE 
-	/DEVICE,VECTOR,0
+	! uncomment this to print pictures from each time step
+	!/SHOW,PNG,,0
+	!PNGR,COMP,1,-1  
+	!PNGR,ORIENT,HORIZ   
+	!PNGR,COLOR,2
+	!PNGR,TMOD,1 
+	!/GFILE,800, 
+	!!*  
+	!/CMAP,_TEMPCMAP_,CMP,,SAVE  
+	!/RGB,INDEX,100,100,100,0
+	!/RGB,INDEX,0,0,0,15 
+	!/REPLOT 
+	!/CMAP,_TEMPCMAP_,CMP
+	!/DELETE,_TEMPCMAP_,CMP  
+	!/SHOW,CLOSE 
+	!/DEVICE,VECTOR,0
 
 FINISH	
+        ! uncomment this to save the x component of the displacement field into a file
 		! *DO,i,1,NDOF,1
 		! *GET,u_n,NODE,i,U,X   
 		! *GET,x_n,NODE,i,LOC,X 
 		! *GET,y_n,NODE,i,LOC,Y 
-		! /OUT, ahoj,'dat',,append  
+		! /OUT, u,'dat',,append  
 		! /COM, %u_n% %x_n% %y_n%   
 		! /OUT,TERM 
 		! *ENDDO
