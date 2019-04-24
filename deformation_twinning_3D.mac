@@ -1,0 +1,217 @@
+FINISH
+/clear
+
+LA = 56 !dimension
+LB = 50
+LC = 1 !10
+
+NA = 56 !number of elements 
+NB = 50
+NC = 2 !10
+
+
+
+! Geometry  (3D)
+!---------------------------------------------------------------------------------------
+/prep7  
+BLOCK,0,NA,0,NB,0,NC,  
+	
+! Finite element 
+!---------------------------------------------------------------------------------------
+	ET,1,185 !brick
+	
+! Material properties
+! Transformation strains are implemented via the secant coefficient
+!---------------------------------------------------------------------------------------
+	MP,EX,1,8.2898    				!Young's modulus  [rescaled]   
+	MP,PRXY,1,0.4293    			!Poisson's ratio
+	*SET,e_xx0 , 0.35355 
+	*SET,e_yy0 , -0.35355
+	*SET,e_xy0 , 0.0  
+	MP,ALPX,1,e_xx0    			!conductivity coefficient , temperature is set to one
+	MP,ALPY,1,e_yy0   			!= transformation strains 
+	MP,ALPZ,1,0.0
+	
+	*SET,gamma,1/10  
+	*SET,dt,1.0 				!time step
+	*SET,dx,LA/(NA+1)   				!grid spacing in x
+	*SET,dy,LB/(NB+1)   				!grid spacing in y
+	*SET,dz,LC/(NC+1)
+	*SET,K_beta,0.0 			!gradient coefficient
+	*SET,const_2 , 2.6929		!double well potential constant
+	*SET,const_3 , -8.0788		!double well potential constant
+	*SET,const_4 , 5.3859		!double well potential constant
+	
+! Mesh   
+!---------------------------------------------------------------------------------------
+LESIZE,4,,,NA, , , , ,1 
+LESIZE,5,,,NA, , , , ,1 
+LESIZE,7,,,NA, , , , ,1 
+LESIZE,2,,,NA, , , , ,1 
+
+LESIZE,1,,,NB, , , , ,1 
+LESIZE,8,,,NB, , , , ,1 
+LESIZE,6,,,NB, , , , ,1 
+LESIZE,3,,,NB, , , , ,1 
+
+LESIZE,9,,,NC,, , , ,1 
+LESIZE,3,,,NC, , , , ,1 
+LESIZE,11,,,NC, , , , ,1 
+LESIZE,12,,,NC, , , , ,1 
+
+MSHAPE,0,3D 
+MSHKEY,1
+VMESH,ALL
+
+! Boundary conditions
+!---------------------------------------------------------------------------------------
+DA,5,ALL,
+DA,6,UY,
+DA,6,UZ,
+DA,6,UX,10*(NA+1)/LA
+
+
+! Phase field model
+!---------------------------------------------------------------------------------------
+	*GET,NELE,elem,,count   
+	*GET,NDOF,node,,count   
+	*DIM,phi,ARRAY,NA+1,NB+1,NC+1, , ,   
+	*DIM,phi_old,ARRAY,NA+1,NB+1,NC+1, , ,   
+	*DO,i,1,NA+1,1   
+	*DO,j,1,NB+1,1 
+	*DO,k,1,NC+1,1
+		*SET,phi(i,j,k) , 0   
+		*SET,phi_old(i,j,k) , 0   
+	*ENDDO  
+	*ENDDO  
+	*ENDDO
+	
+	!create table with position of the nodes (something like finite difference mesh)
+	*DIM,coordinates,ARRAY,NA+1,NB+1,NC+1, , ,   
+	*DO,i,1,NDOF,1  
+		*GET,ndofX,NODE,i,LOC,X 
+		*GET,ndofY,NODE,i,LOC,Y 
+		*GET,ndofZ,NODE,i,LOC,Z 
+		*SET,coordinates(ndofX*1e+0+1,ndofY*1e+0+1,ndofZ*1e+0+1) , i 
+	*ENDDO  
+
+	!Read grain orientation
+	*DIM,tabula,TABLE,NA*NB,1,1, , , !NAxNB elements - columnar grain microstructure  
+	*TREAD,tabula,hexa_8,txt,,0
+
+	*DO,i,1,NA*NB,1
+		!create a local coordinate system for each element
+		uhol = tabula(i)*180/3.14159265359-9.735614
+		LOCAL,11+i,0,0.0,0.0,0.0,uhol, , ,1,1,   !input is in deg, the table is in rad + extra rotation because I defined the transformation strain in the principal coordinate system
+		!modify element coordinate system 
+		
+		*DO,j,1,NC,1
+		EMODIF,NA*NB*(j-1)+i,ESYS,11+i,   
+		*ENDDO
+	*ENDDO  
+	DSYS,0
+!	RSYS,0
+	CSYS,0
+	
+! START MAIN LOOP
+! Solve the phase field equations (using the finite difference method)
+!---------------------------------------------------------------------------------------	
+
+	*DO,ijk,1,100,1 	!start of the main ijk loop 
+	/title, iteration %ijk%
+
+	/SOL
+	SOLVE  
+	FINISH 
+	/POST1 ! I need to go to postprocessor to obtain the data about stress/strain etc.
+	DSYS,0
+	CSYS,0
+	RSYS,0 !results in the global CS
+		*DO,i,2,NA,1   
+		*DO,j,2,NB,1
+		*DO,k,2,NC,1
+			*SET,phi_old(i,j,k) , phi(i,j,k)-gamma*dt*(const_2*phi(i,j,k)+const_3*phi(i,j,k)**2+const_4*phi(i,j,k)**3)
+			*SET,phi_old(i,j,k) , phi_old(i,j,k)-gamma*dt*(-K_beta/dx**2*(phi(i+1,j,k)-2*phi(i,j,k)+phi(i-1,j,k)))
+			*SET,phi_old(i,j,k) , phi_old(i,j,k)-gamma*dt*(-K_beta/dy**2*(phi(i,j+1,k)-2*phi(i,j,k)+phi(i,j-1,k)))
+			*SET,phi_old(i,j,k) , phi_old(i,j,k)-gamma*dt*(-K_beta/dz**2*(phi(i,j,k+1)-2*phi(i,j,k)+phi(i,j,k-1)))
+			*GET,sigma_xx,NODE,coordinates(i,j,k),S,X 
+			*GET,sigma_yy,NODE,coordinates(i,j,k),S,Y 
+			*GET,sigma_xy,NODE,coordinates(i,j,k),S,XY
+			
+			! I also have to rotate the transformation strain here:
+			! Rotation of transformation strain:
+			! element orientation --> node orientation (nodes on the right)
+			uhol = -(tabula(i+(j-1)*NA)*180/3.14159265359-9.735614)*3.14159265359/180 ![RAD]
+			e_xx0_rot = e_xx0*cos(uhol)**2 + e_yy0*sin(uhol)**2
+			e_yy0_rot = e_xx0*sin(uhol)**2 + e_yy0*cos(uhol)**2
+			e_xy0_rot = 2*(e_yy0-e_xx0)*sin(uhol)*cos(uhol)
+			
+			*SET,phi_old(i,j,k) , phi_old(i,j,k)-gamma*dt*(-(e_xx0_rot*sigma_xx+e_yy0_rot*sigma_yy+e_xy0_rot*sigma_xy)) 
+		*ENDDO  
+		*ENDDO  
+		*ENDDO
+		
+		!update the order parameter
+		*DO,i,1,NA+1,1   
+		*DO,j,1,NB+1,1
+		*DO,k,1,NC+1,1
+			*SET,phi(i,j,k) , phi_old(i,j,k)
+		*ENDDO  
+		*ENDDO  
+		*ENDDO 
+		
+		!Neumann boundary conditions 
+		*DO,i,1,NA+1,1
+		*DO,j,1,NB+1,1
+			*SET,phi(i,j,1) , phi_old(i,j,2) 
+			*SET,phi(i,j,NC+1) , phi_old(i,j,NC)
+		*ENDDO 
+		*ENDDO 
+		
+		*DO,j,1,NB+1,1
+		*DO,k,1,NC+1,1
+			*SET,phi(1,j,k) , phi_old(2,j,k)
+			*SET,phi(NA+1,j,k) , phi_old(NA,j,k)
+		*ENDDO
+		*ENDDO
+		
+		*DO,i,1,NA+1,1
+		*DO,k,1,NC+1,1
+			*SET,phi(i,1,k) , phi_old(i,2,k)
+			*SET,phi(i,NB+1,k) , phi_old(i,NB,k)
+		*ENDDO
+		*ENDDO
+
+
+		/DSCALE,ALL,OFF 
+		!PLESOL, BFE,TEMP, 0,1.0	!element solution plot 
+		PLNSOL, BFE,TEMP, 0,1.0		!nodal solution plot 	
+
+! Print the results
+!---------------------------------------------------------------------------------------
+	/SHOW,PNG,,0
+	PNGR,COMP,1,-1  
+	PNGR,ORIENT,HORIZ   
+	PNGR,COLOR,2
+	PNGR,TMOD,1 
+	/GFILE,800, 
+	!*  
+	/CMAP,_TEMPCMAP_,CMP,,SAVE  
+	/RGB,INDEX,100,100,100,0
+	/RGB,INDEX,0,0,0,15 
+	/REPLOT 
+	/CMAP,_TEMPCMAP_,CMP
+	/DELETE,_TEMPCMAP_,CMP  
+	/SHOW,CLOSE 
+	/DEVICE,VECTOR,0
+	
+		/SOL
+		! Now, apply those parameters as the thermal load 
+		*DO,k,1,NDOF,1  
+			*GET,ndofX,NODE,k,LOC,X 
+			*GET,ndofY,NODE,k,LOC,Y 
+			*GET,ndofZ,NODE,k,LOC,Z 
+			BF,coordinates(ndofX*1e+0+1,ndofY*1e+0+1,ndofZ*1e+0+1),TEMP,phi(ndofX*1e+0+1,ndofY*1e+0+1,ndofZ*1e+0+1)   
+		*ENDDO  
+		
+*ENDDO !end of ijk loop (time steps)
