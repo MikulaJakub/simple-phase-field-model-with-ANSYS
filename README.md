@@ -1,7 +1,3 @@
-
-# Updates:
-18 Apr 2019: `MP,ALPZ,1,0.0` has to be given explicitely. Different results are produced if the field is left blank. 
-
 # Introduction
 Here, I demonstrate a simple implementation of a simple phase field model of solid-to-solid phase transformation in ANSYS using the APDL macro. This approach is not computationally efficient but it does the job and the implementation is very simple. For simplicity, the phase field model here operates only with one order parameter and the transformation strain is modelled through the analogy with thermal expansion. 
 
