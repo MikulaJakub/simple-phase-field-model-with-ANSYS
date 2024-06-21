@@ -113,6 +113,8 @@ FINISH
 !---------------------------------------------------------------------------------------
 /SOL
 	SOLVE  
+	/POST1 ! I need to go to postprocessor to obtain the data about stress/strain etc.
+	SET,LAST
 
 ! START MAIN LOOP
 ! Solve the phase field equations (using the finite difference method)
