@@ -97,7 +97,7 @@ DL,2, ,UY,0
 	!Read grain orientation
 	*DIM,tabula,TABLE,NA*NB,1,1, , , !113x98 elements (114x99 nodes)  
 !	*TREAD,tabula,hexa_quarter,txt,,0
-	*TREAD,tabula,hexa_8,txt,,0
+!	*TREAD,tabula,hexa_8,txt,,0
 	
 	*DO,i,1,NA*NB,1
 		!create a local coordinate system   
@@ -126,6 +126,7 @@ DL,2, ,UY,0
 	SOLVE  
 	FINISH 
 	/POST1 ! I need to go to postprocessor to obtain the data about stress/strain etc.
+	SET,LAST ! Need to set this explicitly with the newer versions of ANSYS otherwise result data will not be read properly !
 	DSYS,0
 	CSYS,0
 	RSYS,0 !results in the global CS
