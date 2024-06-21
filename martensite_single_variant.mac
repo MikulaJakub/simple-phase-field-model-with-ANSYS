@@ -150,6 +150,7 @@ FINISH
 		SOLVE   
 		FINISH  
 		/POST1  
+		SET,LAST
 		/DSCALE,ALL,OFF 
 		!PLESOL, BFE,TEMP, 0,1.0	!element solution plot 
 		PLNSOL, BFE,TEMP, 0,1.0		!nodal solution plot 
