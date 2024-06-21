@@ -97,7 +97,7 @@ DA,6,UX,10*(NA+1)/LA
 
 	!Read grain orientation
 	*DIM,tabula,TABLE,NA*NB,1,1, , , !NAxNB elements - columnar grain microstructure  
-	*TREAD,tabula,hexa_8,txt,,0
+	!*TREAD,tabula,hexa_8,txt,,0
 
 	*DO,i,1,NA*NB,1
 		!create a local coordinate system for each element
@@ -124,6 +124,7 @@ DA,6,UX,10*(NA+1)/LA
 	SOLVE  
 	FINISH 
 	/POST1 ! I need to go to postprocessor to obtain the data about stress/strain etc.
+	SET,LAST
 	DSYS,0
 	CSYS,0
 	RSYS,0 !results in the global CS
